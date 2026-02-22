@@ -5,7 +5,11 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Plus, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { FileText, Plus, Clock, CheckCircle, XCircle, CreditCard, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 
 interface Application {
@@ -30,22 +34,48 @@ const statusConfig: Record<string, { color: string; icon: any }> = {
 const StudentDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [payingApp, setPayingApp] = useState<Application | null>(null);
+  const [payProcessing, setPayProcessing] = useState(false);
+  const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
+  const [cardExpiry, setCardExpiry] = useState("12/28");
+  const [cardCvc, setCardCvc] = useState("123");
+
+  const fetchApps = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("bus_pass_applications")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    setApplications((data as Application[]) || []);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    if (!user) return;
-    const fetchApps = async () => {
-      const { data } = await supabase
-        .from("bus_pass_applications")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      setApplications((data as Application[]) || []);
-      setLoading(false);
-    };
     fetchApps();
   }, [user]);
+
+  const handlePay = async () => {
+    if (!payingApp) return;
+    setPayProcessing(true);
+    // Simulate payment processing delay
+    await new Promise((r) => setTimeout(r, 2000));
+    const { error } = await supabase
+      .from("bus_pass_applications")
+      .update({ payment_status: "paid" })
+      .eq("id", payingApp.id);
+    setPayProcessing(false);
+    if (error) {
+      toast({ title: "Payment failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Payment successful!", description: "Your bus pass has been paid." });
+      setPayingApp(null);
+      fetchApps();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -104,6 +134,15 @@ const StudentDashboard = () => {
                       <Badge variant="outline" className={app.payment_status === "paid" ? "bg-success/15 text-success border-success/30" : "bg-muted text-muted-foreground"}>
                         {app.payment_status === "paid" ? "Paid" : "Unpaid"}
                       </Badge>
+                      {app.status === "approved" && app.payment_status !== "paid" && (
+                        <Button
+                          size="sm"
+                          className="gradient-primary text-primary-foreground gap-1"
+                          onClick={() => setPayingApp(app)}
+                        >
+                          <CreditCard className="h-3.5 w-3.5" /> Pay Now
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
