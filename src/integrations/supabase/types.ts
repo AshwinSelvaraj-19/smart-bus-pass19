@@ -56,6 +56,44 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          application_id: string
+          id: string
+          payment_date: string
+          payment_mode: string
+          transaction_id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          application_id: string
+          id?: string
+          payment_date?: string
+          payment_mode?: string
+          transaction_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          application_id?: string
+          id?: string
+          payment_date?: string
+          payment_mode?: string
+          transaction_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "bus_pass_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
