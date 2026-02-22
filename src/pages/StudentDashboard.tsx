@@ -150,6 +150,44 @@ const StudentDashboard = () => {
             })}
           </div>
         )}
+
+        {/* Mock Payment Dialog */}
+        <Dialog open={!!payingApp} onOpenChange={(open) => !open && setPayingApp(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" /> Pay for Bus Pass
+              </DialogTitle>
+              <DialogDescription>
+                Simulated payment for route: {payingApp?.route_from} → {payingApp?.route_to}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <div className="rounded-lg border border-border bg-muted/50 p-3 text-center">
+                <p className="text-sm text-muted-foreground">Amount Due</p>
+                <p className="text-2xl font-bold text-foreground">₹1,500</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="card">Card Number</Label>
+                <Input id="card" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="expiry">Expiry</Label>
+                  <Input id="expiry" value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cvc">CVC</Label>
+                  <Input id="cvc" value={cardCvc} onChange={(e) => setCardCvc(e.target.value)} />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground text-center">🔒 This is a simulated payment — no real charges</p>
+              <Button className="w-full gradient-primary text-primary-foreground" onClick={handlePay} disabled={payProcessing}>
+                {payProcessing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing…</> : "Pay ₹1,500"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
